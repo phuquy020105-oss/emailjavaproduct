@@ -21,7 +21,7 @@ public class MailUtilGmail {
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Authorization", "Bearer " + RESEND_API_KEY.trim());
-                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                 conn.setDoOutput(true);
 
                 String subject = "[Phú Quý Music Store] Cảm ơn bạn đã mua hàng - Đơn hàng #" + orderId;
@@ -45,12 +45,11 @@ public class MailUtilGmail {
                         + "<p>Trân trọng cảm ơn,<br>Đội ngũ Phú Quý Music Store</p>"
                         + "</div>";
 
-                String safeBody = body.replace("\"", "\\\"").replace("\n", "").replace("\r", "");
-                String safeSubject = subject.replace("\"", "\\\"");
+                String safeBody = body.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "").replace("\r", "");
+                String safeSubject = subject.replace("\\", "\\\\").replace("\"", "\\\"");
 
-                // Đặt tên hiển thị thương hiệu là "Phú Quý Music Store"
                 String jsonPayload = "{"
-                        + "\"from\": \"Phú Quý Music Store <onboarding@resend.dev>\","
+                        + "\"from\": \"Phu Quy Music Store <onboarding@resend.dev>\","
                         + "\"to\": [\"" + ADMIN_EMAIL + "\"],"
                         + "\"subject\": \"" + safeSubject + "\","
                         + "\"html\": \"" + safeBody + "\""
