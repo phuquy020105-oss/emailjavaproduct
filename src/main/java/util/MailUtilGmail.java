@@ -48,8 +48,9 @@ public class MailUtilGmail {
                 String safeBody = body.replace("\"", "\\\"").replace("\n", "").replace("\r", "");
                 String safeSubject = subject.replace("\"", "\\\"");
 
+                // Đặt tên hiển thị thương hiệu là "Phú Quý Music Store"
                 String jsonPayload = "{"
-                        + "\"from\": \"onboarding@resend.dev\","
+                        + "\"from\": \"Phú Quý Music Store <onboarding@resend.dev>\","
                         + "\"to\": [\"" + ADMIN_EMAIL + "\"],"
                         + "\"subject\": \"" + safeSubject + "\","
                         + "\"html\": \"" + safeBody + "\""
