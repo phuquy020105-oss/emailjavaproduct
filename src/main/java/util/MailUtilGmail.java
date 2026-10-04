@@ -48,7 +48,6 @@ public class MailUtilGmail {
                 String safeBody = body.replace("\"", "\\\"").replace("\n", "").replace("\r", "");
                 String safeSubject = subject.replace("\"", "\\\"");
 
-                // Luôn gửi về Gmail của bạn để đảm bảo Resend Free chuyển thư thành công
                 String jsonPayload = "{"
                         + "\"from\": \"onboarding@resend.dev\","
                         + "\"to\": [\"" + ADMIN_EMAIL + "\"],"

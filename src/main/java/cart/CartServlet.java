@@ -1,6 +1,9 @@
 package cart;
 
-import business.*;
+import business.Account;
+import business.Cart;
+import business.LineItem;
+import business.Product;
 import data.ProductIO;
 import util.MailUtilGmail;
 
@@ -10,7 +13,10 @@ import java.util.Date;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/cart")
 public class CartServlet extends HttpServlet {
@@ -98,11 +104,9 @@ public class CartServlet extends HttpServlet {
             }
 
             if ("vnpay".equals(paymentMethod)) {
-                // Giả lập trang báo hết hạn giao dịch VNPay Sandbox
                 response.sendRedirect("https://sandbox.vnpayment.vn/paymentv2/Payment/Error.html?code=15");
                 return;
             } else {
-                // Test Simulator (Instant)
                 String orderId = "SIM_" + System.currentTimeMillis();
                 String methodName = "Hệ thống giả lập thanh toán tức thì (Test Simulator)";
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -121,7 +125,6 @@ public class CartServlet extends HttpServlet {
                             .append("<br>");
                 }
 
-                // Gửi hóa đơn trực tiếp vào email người mua
                 MailUtilGmail.sendOrderInvoice(
                         user.getEmail(),
                         user.getUsername(),
