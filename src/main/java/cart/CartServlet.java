@@ -98,7 +98,7 @@ public class CartServlet extends HttpServlet {
             }
 
             if ("vnpay".equals(paymentMethod)) {
-                // Điều hướng sang trang báo hết hạn giao dịch VNPay Sandbox
+                // Giả lập trang báo hết hạn giao dịch VNPay Sandbox
                 response.sendRedirect("https://sandbox.vnpayment.vn/paymentv2/Payment/Error.html?code=15");
                 return;
             } else {
@@ -121,7 +121,7 @@ public class CartServlet extends HttpServlet {
                             .append("<br>");
                 }
 
-                // Gửi hóa đơn về Gmail
+                // Gửi hóa đơn trực tiếp vào email người mua
                 MailUtilGmail.sendOrderInvoice(
                         user.getEmail(),
                         user.getUsername(),
@@ -133,7 +133,6 @@ public class CartServlet extends HttpServlet {
                         timeStr
                 );
 
-                // Dọn giỏ hàng và gắn thông báo thành công
                 cart.clear();
                 request.setAttribute("successMessage", "Thanh toán thành công! Email cảm ơn đã được gửi tới " + user.getEmail() + ".");
                 url = "/index.jsp";

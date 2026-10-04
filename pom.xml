@@ -32,11 +32,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JSTL để dùng thẻ c:forEach, c:if, fmt:formatNumber -->
+        <!-- JSTL -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
             <version>1.2</version>
+        </dependency>
+
+        <!-- Thư viện JavaMail để gửi mail thật bằng Gmail SMTP -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
         </dependency>
     </dependencies>
 
