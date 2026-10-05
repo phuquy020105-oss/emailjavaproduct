@@ -16,14 +16,6 @@ public class MailUtilGmail {
                                         double totalUSD, long totalVND, String itemsHtml, String timeStr) {
         new Thread(() -> {
             try {
-                URI uri = URI.create("https://api.resend.com/emails");
-                URL url = uri.toURL();
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Authorization", "Bearer " + RESEND_API_KEY.trim());
-                conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                conn.setDoOutput(true);
-
                 String subject = "[Phú Quý Music Store] Cảm ơn bạn đã mua hàng - Đơn hàng #" + orderId;
 
                 String body = "<div style='font-family: Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #222;'>"
@@ -48,33 +40,69 @@ public class MailUtilGmail {
                 String safeBody = body.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "").replace("\r", "");
                 String safeSubject = subject.replace("\\", "\\\\").replace("\"", "\\\"");
 
+                // Gửi trực tiếp đến email người đăng ký
+                String targetEmail = (customerEmail != null && !customerEmail.trim().isEmpty()) ? customerEmail.trim() : ADMIN_EMAIL;
+
                 String jsonPayload = "{"
                         + "\"from\": \"Phu Quy Music Store <onboarding@resend.dev>\","
-                        + "\"to\": [\"" + ADMIN_EMAIL + "\"],"
+                        + "\"to\": [\"" + targetEmail + "\"],"
                         + "\"subject\": \"" + safeSubject + "\","
                         + "\"html\": \"" + safeBody + "\""
                         + "}";
 
-                try (OutputStream os = conn.getOutputStream()) {
-                    byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
-                    os.write(input, 0, input.length);
-                }
+                sendHttpRequest(jsonPayload, targetEmail, safeSubject, safeBody);
 
-                int code = conn.getResponseCode();
-                System.out.println("Resend API response code: " + code);
-                if (code >= 200 && code < 300) {
-                    System.out.println("Gửi mail hóa đơn Phú Quý Music Store thành công!");
-                } else {
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            System.err.println("Resend Error: " + line);
-                        }
-                    }
-                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    private static void sendHttpRequest(String jsonPayload, String targetEmail, String subject, String body) {
+        try {
+            URI uri = URI.create("https://api.resend.com/emails");
+            URL url = uri.toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + RESEND_API_KEY.trim());
+            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            conn.setDoOutput(true);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int code = conn.getResponseCode();
+            System.out.println("Gửi mail tới [" + targetEmail + "] - Response code: " + code);
+
+            if (code >= 200 && code < 300) {
+                System.out.println("Thành công gửi tới: " + targetEmail);
+            } else {
+                // Nếu Resend báo lỗi 403 (do tài khoản Free chưa add domain nên không cho gửi ra ngoài)
+                StringBuilder err = new StringBuilder();
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        err.append(line);
+                    }
+                }
+                System.err.println("Resend Error (" + code + "): " + err);
+
+                // Fallback: nếu bị 403, gửi về ADMIN_EMAIL để luôn nhận được thư thông báo
+                if (code == 403 && !targetEmail.equals(ADMIN_EMAIL)) {
+                    System.out.println("Tài khoản Resend Free bị giới hạn gửi ra ngoài domain. Chuyển tiếp bản sao về admin...");
+                    String fallbackPayload = "{"
+                            + "\"from\": \"Phu Quy Music Store <onboarding@resend.dev>\","
+                            + "\"to\": [\"" + ADMIN_EMAIL + "\"],"
+                            + "\"subject\": \"[Gửi cho " + targetEmail + "] " + subject + "\","
+                            + "\"html\": \"" + body + "\""
+                            + "}";
+                    sendHttpRequest(fallbackPayload, ADMIN_EMAIL, subject, body);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
